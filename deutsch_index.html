@@ -145,19 +145,47 @@ body::before {
 /* ═══ BOTTOM NAV ═══ */
 .bnav {
   position: fixed; bottom: 0; left: 0; right: 0;
-  background: rgba(10,10,15,.92); backdrop-filter: blur(20px);
-  border-top: 1px solid var(--border-0);
+  background: var(--bg-1); backdrop-filter: blur(20px);
+  border-top: 2px solid var(--border-1);
   display: flex; z-index: 100;
+  box-shadow: 0 -2px 12px rgba(0,0,0,.12);
 }
 .nb {
-  flex: 1; padding: 9px 0 7px; border: none; background: transparent;
+  flex: 1; padding: 10px 0 8px; border: none; background: transparent;
   cursor: pointer; font-family: var(--font-sans);
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  color: var(--text-3); font-size: 9px; font-weight: 500;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  color: var(--text-2); font-size: 10px; font-weight: 600;
   transition: color .15s; letter-spacing: .02em;
 }
 .nb.on { color: var(--accent); }
-.nb-i { font-size: 18px; line-height: 1; }
+
+
+/* Simple light mode nav - always visible */
+.light-mode .bnav {
+  background: #ffffff !important;
+  border-top-color: #e0e0e0 !important;
+  box-shadow: 0 -2px 10px rgba(0,0,0,.1) !important;
+}
+.light-mode .nb {
+  color: rgba(0,0,0,.5) !important;
+}
+.light-mode .nb.on {
+  color: #4F8EF7 !important;
+}
+.light-mode .nb-i {
+  filter: none;
+}
+/* Light mode nav fix */
+body:not([data-theme]) .nb,
+[data-light] .nb {
+  color: rgba(0,0,0,.6) !important;
+}
+body:not([data-theme]) .nb.on,
+[data-light] .nb.on {
+  color: var(--accent) !important;
+}
+
+.nb-i { font-size: 22px; line-height: 1; }
 
 /* ═══ PANELS ═══ */
 .panel { display: none; }
@@ -1009,6 +1037,8 @@ function applyTheme(){
 }
 function toggleDark(){
   darkMode=!darkMode;applyTheme();saveAll();
+  // Toggle class on body for CSS targeting
+  document.body.classList.toggle('light-mode', !darkMode);
   // Apply CSS variable override for light mode
   if(!darkMode){
     document.documentElement.style.setProperty('--bg-0','#f5f5f7');
@@ -1130,9 +1160,16 @@ function togglePomo(){
 function go(name){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('show'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
-  document.getElementById('p-'+name).classList.add('show');
-  const nb=document.getElementById('nb-'+name);if(nb)nb.classList.add('on');
-  ({home:renderHome,vocab:startVocab,grammar:startGrammar,listen:startListen,speak:startSpeak,write:startWrite,read:startRead,settings:renderSettings}[name]||renderHome)();
+  const panel=document.getElementById('p-'+name);
+  if(panel) panel.classList.add('show');
+  // Highlight correct nav tab
+  const navMap={home:'nb-home',vocab:'nb-home',grammar:'nb-home',listen:'nb-home',speak:'nb-home',write:'nb-home',read:'nb-home',flash:'nb-flash',settings:'nb-settings'};
+  const nbId=navMap[name]||('nb-'+name);
+  const nb=document.getElementById(nbId);if(nb)nb.classList.add('on');
+  const skillMap={home:renderHome,vocab:startVocab,grammar:startGrammar,listen:startListen,speak:startSpeak,write:startWrite,read:startRead,flash:renderFlash,settings:renderSettings};
+  const fn=skillMap[name];
+  if(fn) fn();
+  else renderHome();
 }
 
 // ═════ DAILY PLAN ═════
@@ -1764,6 +1801,158 @@ function checkR(chosen,correct,explain){
 
 // ═════ SETTINGS ═════
 const LV_DESCRIPTIONS={A0:'Chưa biết gì — bắt đầu từ Alphabet và những từ đầu tiên',A1:'Đã xong A1 — biết sein/haben, Artikel, câu đơn giản',A2:'Đã xong A2 — biết Perfekt, Modalverben, Dativ/Akkusativ',B1:'Đã xong B1 — biết Nebensätze, Passiv, Konjunktiv II',B2:'Đã xong B2 — biết Relativsatz, Konzessiv, văn học thuật',C1:'Đã xong C1 — biết Partizip, Nominalisierung, văn phong cao'};
+
+// ═════ FLASHCARD ═════
+function renderFlash(){
+  const lv2=getStudyLv();
+  const el=document.getElementById('p-flash');
+  // Level selector
+  const lvs=['A1','A2','B1','B2','C1','C2'];
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:.85rem">
+      <div class="h2">🃏 Flashcard</div>
+      <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);margin-left:auto" id="fcSRSStat"></div>
+    </div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.75rem" id="fcLvPicker">
+      ${lvs.map(l=>`<button class="btn btn-sm${l===lv2?' btn-primary':' btn-ghost'} fcLvBtn" data-lv="${l}" onclick="startFlashcard('${l}')">${l}</button>`).join('')}
+    </div>
+    <div id="fcArea"></div>`;
+  startFlashcard(lv2);
+}
+
+let fcSession={lv:'A1',queue:[],idx:0,correct:0,total:0};
+
+function startFlashcard(lv){
+  // Fix level button highlight
+  document.querySelectorAll('.fcLvBtn').forEach(b=>{
+    b.className='btn btn-sm btn-ghost fcLvBtn';
+    if(b.dataset.lv===lv) b.className='btn btn-sm btn-primary fcLvBtn';
+  });
+
+  const cards=VOCAB[lv]||[];
+  // Sort: due cards first (SRS)
+  const idxArr=cards.map((_,i)=>i);
+  idxArr.sort((a,b)=>{
+    const da=srsV[`${lv}_v_${a}`];const db=srsV[`${lv}_v_${b}`];
+    const aDue=!da||da.nextDue<=Date.now()?0:1;
+    const bDue=!db||db.nextDue<=Date.now()?0:1;
+    return aDue-bDue;
+  });
+  // Shuffle within due/not-due groups
+  function shufArr(a){for(let i=a.length-1;i>0;i--){const j=~~(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  const due=idxArr.filter(i=>{const d=srsV[`${lv}_v_${i}`];return !d||d.nextDue<=Date.now();});
+  const notDue=idxArr.filter(i=>{const d=srsV[`${lv}_v_${i}`];return d&&d.nextDue>Date.now();});
+  const sorted=[...shufArr(due),...shufArr(notDue)];
+
+  fcSession={lv,queue:sorted,idx:0,correct:0,total:0};
+
+  // Show SRS stats
+  const dueCount=due.length;const totalCount=cards.length;
+  const stat=document.getElementById('fcSRSStat');
+  if(stat) stat.textContent=`📌 ${dueCount}/${totalCount} cần ôn`;
+
+  renderFlashCard();
+}
+
+function renderFlashCard(){
+  const s=fcSession;
+  const el=document.getElementById('fcArea');
+  if(!el) return;
+
+  if(s.idx>=s.queue.length){
+    // Done
+    const pct=s.total?Math.round(s.correct/s.total*100):0;
+    const col=pct>=80?'var(--green)':pct>=60?'var(--accent)':'var(--amber)';
+    el.innerHTML=`<div class="result-box" style="text-align:center;padding:2rem 1rem">
+      <div style="font-size:52px;margin-bottom:.5rem">🎉</div>
+      <div style="font-size:32px;font-weight:700;color:${col};font-family:var(--font-mono)">${pct}%</div>
+      <div style="font-size:13px;color:var(--text-2);margin:.3rem 0">${s.correct}/${s.total} thẻ nhớ được</div>
+      <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);margin-bottom:1rem">SRS đã cập nhật — app sẽ nhắc ôn đúng lúc</div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="startFlashcard('${s.lv}')">↻ Học lại</button>
+        <button class="btn btn-ghost" onclick="go('home')">← Về trang chủ</button>
+      </div>
+    </div>`;
+    return;
+  }
+
+  const ci=s.queue[s.idx];
+  const cards=VOCAB[s.lv]||[];
+  const c=cards[ci];
+  if(!c){s.idx++;renderFlashCard();return;}
+
+  const key=`${s.lv}_v_${ci}`;
+  const sd=srsV[key]||{};
+  const isDue=!sd.nextDue||sd.nextDue<=Date.now();
+  const nextReview=sd.nextDue?new Date(sd.nextDue).toLocaleDateString('vi'):'chưa học';
+  const wf=c.art?c.art+' '+c.w:c.w;
+  const prog=Math.round(s.idx/Math.max(s.queue.length,1)*100);
+
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+      <span style="font-size:11px;color:var(--text-3);font-family:var(--font-mono)">${s.idx+1}/${s.queue.length}</span>
+      <span style="font-size:11px;color:${isDue?'var(--amber)':'var(--green)'};font-family:var(--font-mono)">${isDue?'📌 Cần ôn':'✓ Đã thuộc'}</span>
+    </div>
+    <div style="height:4px;background:var(--bg-4);border-radius:2px;margin-bottom:.75rem;overflow:hidden">
+      <div style="height:4px;background:var(--accent);border-radius:2px;width:${prog}%;transition:width .3s"></div>
+    </div>
+
+    <!-- CARD FRONT -->
+    <div id="fcFront" onclick="flipFCard()" style="background:var(--bg-1);border:1px solid var(--border-1);border-radius:16px;padding:2rem 1.25rem;text-align:center;cursor:pointer;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;transition:transform .15s;active:scale(.98)">
+      <span class="badge b-${s.lv}">${s.lv}</span>
+      <div style="font-size:12px;color:var(--text-3);font-family:var(--font-mono)">${c.type||''}</div>
+      <div style="font-size:28px;font-weight:700;color:var(--text-0);letter-spacing:-.5px">${c.w}</div>
+      ${c.art?`<div style="font-size:15px;color:var(--accent);font-weight:600">${c.art}</div>`:''}
+      ${c.topic?`<div style="font-size:11px;color:var(--purple);background:var(--purple-dim);border-radius:20px;padding:2px 10px">${c.topic}</div>`:''}
+      <button class="spk" onclick="event.stopPropagation();speak('${wf.replace(/'/g,"\'")}',this)" style="margin-top:.3rem">${SPK} Nghe</button>
+      <div style="font-size:11px;color:var(--text-3);margin-top:.5rem">👆 Nhấn để xem nghĩa</div>
+    </div>
+
+    <!-- CARD BACK (hidden) -->
+    <div id="fcBack" style="display:none;background:var(--bg-1);border:1px solid var(--border-1);border-radius:16px;padding:1.25rem;min-height:200px">
+      <div style="text-align:center;margin-bottom:.75rem">
+        <div style="font-size:20px;font-weight:700;color:var(--text-0)">${wf}</div>
+        <div style="display:flex;justify-content:center;gap:6px;margin-top:.4rem;flex-wrap:wrap">
+          <button class="spk" onclick="speak('${wf.replace(/'/g,"\'")}',this)">${SPK} Từ</button>
+          ${c.s1?`<button class="spk" onclick="speak('${(c.s1||'').replace(/'/g,"\'")}',this)">${SPK} Câu 1</button>`:''}
+        </div>
+      </div>
+      <div style="font-size:20px;font-weight:700;color:var(--amber);text-align:center;margin:.5rem 0;padding:.5rem;background:var(--amber-dim);border-radius:10px">${c.meaning||''}</div>
+      ${c.s1?`<div style="background:var(--bg-2);border-radius:10px;padding:.6rem .85rem;margin-bottom:.4rem"><div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);margin-bottom:2px">Câu ví dụ</div><div style="font-size:13px;color:var(--text-0);font-style:italic">${c.s1}</div><div style="font-size:11px;color:var(--text-3);margin-top:3px">${c.t1||''}</div></div>`:''}
+      <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);margin-top:.4rem">📅 Ôn lần sau: ${nextReview} · interval ${sd.interval||1}d</div>
+    </div>
+
+    <div class="btn-row" id="fcBtns" style="margin-top:.75rem">
+      <button class="btn" onclick="flipFCard()">Lật thẻ →</button>
+    </div>`;
+}
+
+function flipFCard(){
+  const front=document.getElementById('fcFront');
+  const back=document.getElementById('fcBack');
+  const btns=document.getElementById('fcBtns');
+  if(!front||!back||!btns) return;
+  front.style.display='none';back.style.display='block';
+  btns.innerHTML=`
+    <button class="btn btn-correct" onclick="rateCard(2)">✓ Nhớ rõ</button>
+    <button class="btn btn-hard" onclick="rateCard(1)">~ Lờ mờ</button>
+    <button class="btn btn-wrong" onclick="rateCard(0)">✗ Quên</button>`;
+}
+
+function rateCard(q){
+  const s=fcSession;
+  const ci=s.queue[s.idx];
+  const key=`${s.lv}_v_${ci}`;
+  // Update SRS
+  srsV[key]=sm2Update(srsV[key]||{},q);
+  s.total++;
+  if(q>=1){s.correct++;onOk('vocab',q===2?10:5);}
+  else{s.wrong=(s.wrong||0)+1;onNo('vocab',(VOCAB[s.lv]||[])[ci]?.w||'');}
+  saveAll();
+  s.idx++;
+  renderFlashCard();
+}
+
 function renderSettings(){
   const plan=calcPlan();
   document.getElementById('p-settings').innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:.85rem"><button class="btn btn-ghost btn-sm" onclick="go('home')">← Về</button><div class="h2">⚙️ Cài đặt</div></div>
