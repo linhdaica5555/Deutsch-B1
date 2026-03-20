@@ -1363,7 +1363,7 @@ function startVocab(){
     <button class="btn btn-ghost btn-sm" onclick="go('home')">← Về</button>
     <div class="h2">📚 Từ vựng</div>
     <div style="margin-left:auto;display:flex;gap:4px;flex-wrap:wrap">
-      ${STUDY_LEVELS.map(l=>`<button class="btn btn-sm${l===lv2?' btn-primary':' btn-ghost'}" onclick="session.lv='${l}';session.queue=shuf((VOCAB['${l}']||[]).map((_,i)=>i));session.idx=0;session.usedCards=new Set();renderVCard()">${l}</button>`).join('')}
+      ${STUDY_LEVELS.map(l=>`<button class="btn btn-sm btn-ghost vocab-lv-btn" id="vlb_${l}" onclick="switchVocabLv('${l}')">${l}</button>`).join('')}
     </div>
   </div>
   <div class="prog-hd"><span class="label" id="vCtr">—</span><span style="font-size:11px;font-family:var(--font-mono)" id="vStat"></span></div>
@@ -1374,6 +1374,12 @@ function startVocab(){
   <div class="srs-dots" id="vDots"></div>
   <div id="vArea"></div><div class="btn-row" id="vBtns"></div><div id="vRes"></div>`;
   renderVCard();
+  // Highlight active level button after render
+  setTimeout(()=>{
+    document.querySelectorAll('.vocab-lv-btn').forEach(b=>b.className='btn btn-sm btn-ghost vocab-lv-btn');
+    const ab=document.getElementById('vlb_'+lv2);
+    if(ab) ab.className='btn btn-sm btn-primary vocab-lv-btn';
+  },10);
 }
 function renderVCard(){
   const s=session;const cards=VOCAB[s.lv]||[];
@@ -1415,6 +1421,21 @@ function renderVCard(){
       <textarea class="note-area" placeholder="Ghi chú..." onchange="ss('note_${key}',this.value)">${gg('note_'+key)||''}</textarea>
     </div>`;
   document.getElementById('vBtns').innerHTML=`<button class="btn" onclick="flipV()">Lật thẻ →</button>`;
+}
+function switchVocabLv(lv){
+  // Update button highlight
+  document.querySelectorAll('.vocab-lv-btn').forEach(b=>{
+    b.className='btn btn-sm btn-ghost vocab-lv-btn';
+  });
+  const btn=document.getElementById('vlb_'+lv);
+  if(btn) btn.className='btn btn-sm btn-primary vocab-lv-btn';
+  // Switch data
+  session.lv=lv;
+  session.queue=shuf((VOCAB[lv]||[]).map((_,i)=>i));
+  session.idx=0;
+  session.correct=0;session.wrong=0;
+  if(session.usedCards) session.usedCards=new Set();
+  renderVCard();
 }
 function flipV(){
   document.getElementById('vFront').style.display='none';document.getElementById('vBack').style.display='block';
