@@ -10,7 +10,7 @@
 :root{--bg:#b8b8b8;--surface:#fff;--surface2:#f4f4f4;--border:#d8d8d8;--text:#0f0f0f;--text2:#555;--text3:#999;--accent:#2563EB;--accent-lt:#EFF6FF;--accent-md:#BFDBFE;--accent-dk:#1E40AF;--green:#16A34A;--green-bg:#F0FDF4;--green-md:#BBF7D0;--red:#DC2626;--red-bg:#FEF2F2;--red-md:#FECACA;--amber:#D97706;--amber-bg:#FFFBEB;--amber-md:#FDE68A;--purple:#7C3AED;--purple-bg:#F5F3FF;--purple-md:#DDD6FE;--sh:0 1px 10px rgba(0,0,0,.1);}
 [data-dark]{--bg:#0a0a0a;--surface:#161616;--surface2:#202020;--border:#303030;--text:#f0f0f0;--text2:#888;--text3:#505050;--accent:#3B82F6;--accent-lt:#1E3A5F;--accent-md:#1E3A8A;--accent-dk:#93C5FD;--green:#22C55E;--green-bg:#052e16;--green-md:#166534;--red:#F87171;--red-bg:#2d0000;--red-md:#7f1d1d;--amber:#FCD34D;--amber-bg:#292200;--amber-md:#78350f;--purple:#A78BFA;--purple-bg:#1e1040;--purple-md:#4c1d95;--sh:0 1px 10px rgba(0,0,0,.35);}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{padding-bottom:72px!important;font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:64px;overflow-x:hidden;transition:background .2s,color .2s;font-size:15px;}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:64px;overflow-x:hidden;transition:background .2s,color .2s;font-size:15px;}
 .wrap{max-width:580px;margin:0 auto;padding:.85rem .9rem 0;}
 .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem;}
 .logo{font-weight:700;font-size:15px;color:var(--accent);}
@@ -102,7 +102,33 @@ body{padding-bottom:72px!important;font-family:system-ui,sans-serif;background:v
 @keyframes fup{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}15%{opacity:1;transform:translate(-50%,-65%) scale(1.1)}70%{opacity:1;transform:translate(-50%,-85%)}100%{opacity:0;transform:translate(-50%,-120%) scale(.9)}}
 </style>
 </head>
-<body>
+<body><div id="site-nav" style="position:sticky;top:0;left:0;right:0;z-index:9999;background:rgba(10,10,15,.97);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 4px;">
+  <a href="deutsch_index.html" class="snav-link" id="sn-index">
+    <span>📱</span><span class="snav-txt">App</span>
+  </a>
+  <a href="deutsch_learn.html" class="snav-link" id="sn-learn">
+    <span>📖</span><span class="snav-txt">Lý thuyết</span>
+  </a>
+  <a href="deutsch_practice.html" class="snav-link" id="sn-practice">
+    <span>🎯</span><span class="snav-txt">Luyện thi</span>
+  </a>
+  <a href="deutsch_reference.html" class="snav-link" id="sn-ref">
+    <span>📋</span><span class="snav-txt">Tra cứu</span>
+  </a>
+</div>
+<style>
+.snav-link{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 2px 6px;text-decoration:none;color:rgba(255,255,255,.35);font-size:9px;font-weight:600;font-family:system-ui,sans-serif;letter-spacing:.01em;transition:color .15s;border-bottom:2px solid transparent;}
+.snav-link:hover{color:rgba(255,255,255,.7);}
+.snav-link.active{color:#4F8EF7;border-bottom-color:#4F8EF7;}
+.snav-link span:first-child{font-size:17px;line-height:1;}
+</style>
+<script>
+(function(){
+  var p=location.pathname+location.href;
+  var map=[['deutsch_index','sn-index'],['deutsch_learn','sn-learn'],['deutsch_practice','sn-practice'],['deutsch_reference','sn-ref']];
+  for(var i=0;i<map.length;i++){if(p.indexOf(map[i][0])>-1){var el=document.getElementById(map[i][1]);if(el)el.classList.add('active');break;}}
+})();
+</script>
 <div class="wrap">
   <div class="topbar">
     <div class="logo">📖 Handbuch A1–C2</div>
@@ -294,27 +320,6 @@ function renderErrors(){
 }
 renderGrammar();
 </script>
-<div style="position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,15,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.08);display:flex;z-index:9999;padding-bottom:env(safe-area-inset-bottom)">
-  <a href="deutsch_index.html" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 6px;text-decoration:none;color:rgba(255,255,255,.4);font-size:9px;font-weight:500;font-family:system-ui,sans-serif;transition:color .15s" id="nav-index">
-    <span style="font-size:19px">📱</span>App
-  </a>
-  <a href="deutsch_learn.html" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 6px;text-decoration:none;color:rgba(255,255,255,.4);font-size:9px;font-weight:500;font-family:system-ui,sans-serif;transition:color .15s" id="nav-learn">
-    <span style="font-size:19px">📖</span>Lý thuyết
-  </a>
-  <a href="deutsch_practice.html" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 6px;text-decoration:none;color:rgba(255,255,255,.4);font-size:9px;font-weight:500;font-family:system-ui,sans-serif;transition:color .15s" id="nav-practice">
-    <span style="font-size:19px">🎯</span>Luyện thi
-  </a>
-  <a href="deutsch_reference.html" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 6px;text-decoration:none;color:rgba(255,255,255,.4);font-size:9px;font-weight:500;font-family:system-ui,sans-serif;transition:color .15s" id="nav-ref">
-    <span style="font-size:19px">📋</span>Tra cứu
-  </a>
-</div>
-<script>
-// Highlight active tab
-(function(){
-  var p=location.pathname;
-  var map={'deutsch_index':'nav-index','deutsch_learn':'nav-learn','deutsch_practice':'nav-practice','deutsch_reference':'nav-ref'};
-  for(var k in map){if(p.indexOf(k)>-1){var el=document.getElementById(map[k]);if(el){el.style.color='#4F8EF7';}break;}}
-})();
-</script>
+
 </body>
 </html>
