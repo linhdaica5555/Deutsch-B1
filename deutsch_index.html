@@ -65,7 +65,7 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { height: 100%; -webkit-tap-highlight-color: transparent; }
-body {
+body {padding-bottom:72px!important;
   font-family: var(--font-sans);
   background: var(--bg-0);
   color: var(--text-1);
@@ -1810,5 +1810,27 @@ try{renderHome();}catch(e){
   if(el)el.innerHTML='<div style="padding:1.5rem;color:#F87171;font-size:14px">⚠️ Lỗi khởi động: '+e.message+'<br><br>Thử: Tải lại trang (Ctrl+R hoặc pull-to-refresh)</div>';
 }
 
+</script>
+<div style="position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,15,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.08);display:flex;z-index:9999;padding-bottom:env(safe-area-inset-bottom)">
+  <a href="deutsch_index.html" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 6px;text-decoration:none;color:rgba(255,255,255,.4);font-size:9px;font-weight:500;font-family:system-ui,sans-serif;transition:color .15s" id="nav-index">
+    <span style="font-size:19px">📱</span>App
+  </a>
+  <a href="deutsch_learn.html" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 6px;text-decoration:none;color:rgba(255,255,255,.4);font-size:9px;font-weight:500;font-family:system-ui,sans-serif;transition:color .15s" id="nav-learn">
+    <span style="font-size:19px">📖</span>Lý thuyết
+  </a>
+  <a href="deutsch_practice.html" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 6px;text-decoration:none;color:rgba(255,255,255,.4);font-size:9px;font-weight:500;font-family:system-ui,sans-serif;transition:color .15s" id="nav-practice">
+    <span style="font-size:19px">🎯</span>Luyện thi
+  </a>
+  <a href="deutsch_reference.html" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 6px;text-decoration:none;color:rgba(255,255,255,.4);font-size:9px;font-weight:500;font-family:system-ui,sans-serif;transition:color .15s" id="nav-ref">
+    <span style="font-size:19px">📋</span>Tra cứu
+  </a>
+</div>
+<script>
+// Highlight active tab
+(function(){
+  var p=location.pathname;
+  var map={'deutsch_index':'nav-index','deutsch_learn':'nav-learn','deutsch_practice':'nav-practice','deutsch_reference':'nav-ref'};
+  for(var k in map){if(p.indexOf(k)>-1){var el=document.getElementById(map[k]);if(el){el.style.color='#4F8EF7';}break;}}
+})();
 </script>
 </body></html>

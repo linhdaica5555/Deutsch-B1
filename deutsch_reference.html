@@ -10,7 +10,7 @@
 :root{--bg:#b8b8b8;--surface:#fff;--surface2:#f4f4f4;--border:#d8d8d8;--text:#0f0f0f;--text2:#555;--text3:#999;--accent:#2563EB;--accent-lt:#EFF6FF;--accent-md:#BFDBFE;--accent-dk:#1E40AF;--green:#16A34A;--green-bg:#F0FDF4;--green-md:#BBF7D0;--red:#DC2626;--red-bg:#FEF2F2;--red-md:#FECACA;--amber:#D97706;--amber-bg:#FFFBEB;--amber-md:#FDE68A;--purple:#7C3AED;--purple-bg:#F5F3FF;--purple-md:#DDD6FE;--sh:0 1px 10px rgba(0,0,0,.1);}
 [data-dark]{--bg:#0a0a0a;--surface:#161616;--surface2:#202020;--border:#303030;--text:#f0f0f0;--text2:#888;--text3:#505050;--accent:#3B82F6;--accent-lt:#1E3A5F;--accent-md:#1E3A8A;--accent-dk:#93C5FD;--green:#22C55E;--green-bg:#052e16;--green-md:#166534;--red:#F87171;--red-bg:#2d0000;--red-md:#7f1d1d;--amber:#FCD34D;--amber-bg:#292200;--amber-md:#78350f;--purple:#A78BFA;--purple-bg:#1e1040;--purple-md:#4c1d95;--sh:0 1px 10px rgba(0,0,0,.35);}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:64px;overflow-x:hidden;transition:background .2s,color .2s;font-size:15px;}
+body{padding-bottom:72px!important;font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:64px;overflow-x:hidden;transition:background .2s,color .2s;font-size:15px;}
 .wrap{max-width:580px;margin:0 auto;padding:.85rem .9rem 0;}
 .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem;}
 .logo{font-weight:700;font-size:15px;color:var(--accent);}
@@ -293,6 +293,28 @@ function renderErrors(){
   el.innerHTML=`<div class="filter-row">${LEVELS.filter(l=>ERROR_DATA.some(e=>e.lv===l)).map(l=>`<button class="fpill${lv.includes(l)?' on':''}" style="${lv.includes(l)?`border-color:${getAccentForLv(l)};color:${getAccentForLv(l)}`:''}" onclick="toggleGFilter('${l}');renderErrors()">${l}</button>`).join('')}<button class="fpill${lv.length===0?' on':''}" onclick="activeFilters.grammar=[];renderErrors()">Tất cả</button></div><div style="font-size:12px;color:var(--text3);margin-bottom:.5rem">${filtered.length} lỗi phổ biến</div>${filtered.map(e=>`<div class="error-card"><div style="display:flex;gap:6px;margin-bottom:.35rem"><span class="badge lc-${e.lv}">${e.lv}</span><span style="font-size:11px;color:var(--text2);background:#fff;border-radius:6px;padding:2px 7px">${e.cat}</span></div><div class="ec-wrong">✗ ${e.wrong}</div><div class="ec-correct">✓ ${e.correct}</div><div class="ec-explain">💡 ${e.explain}</div></div>`).join('')}<div class="tip-card" style="margin-top:.5rem"><div class="tc-skill" style="color:var(--purple)">🇻🇳 Khó khăn đặc biệt của người Việt</div><ul class="tc-body"><li>Không có mạo từ trong tiếng Việt → luôn học danh từ kèm DER/DIE/DAS</li><li>Không chia động từ trong tiếng Việt → luyện đuôi động từ hàng ngày</li><li>Không có Kasus → Nominativ/Akkusativ/Dativ phải học có hệ thống</li><li>Trật tự SOV trong Nebensatz rất lạ → weil/obwohl → Verb cuối!</li><li>Không có Plural forms → mỗi danh từ phải học kèm dạng số nhiều</li></ul></div>`;
 }
 renderGrammar();
+</script>
+<div style="position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,15,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.08);display:flex;z-index:9999;padding-bottom:env(safe-area-inset-bottom)">
+  <a href="deutsch_index.html" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 6px;text-decoration:none;color:rgba(255,255,255,.4);font-size:9px;font-weight:500;font-family:system-ui,sans-serif;transition:color .15s" id="nav-index">
+    <span style="font-size:19px">📱</span>App
+  </a>
+  <a href="deutsch_learn.html" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 6px;text-decoration:none;color:rgba(255,255,255,.4);font-size:9px;font-weight:500;font-family:system-ui,sans-serif;transition:color .15s" id="nav-learn">
+    <span style="font-size:19px">📖</span>Lý thuyết
+  </a>
+  <a href="deutsch_practice.html" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 6px;text-decoration:none;color:rgba(255,255,255,.4);font-size:9px;font-weight:500;font-family:system-ui,sans-serif;transition:color .15s" id="nav-practice">
+    <span style="font-size:19px">🎯</span>Luyện thi
+  </a>
+  <a href="deutsch_reference.html" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 6px;text-decoration:none;color:rgba(255,255,255,.4);font-size:9px;font-weight:500;font-family:system-ui,sans-serif;transition:color .15s" id="nav-ref">
+    <span style="font-size:19px">📋</span>Tra cứu
+  </a>
+</div>
+<script>
+// Highlight active tab
+(function(){
+  var p=location.pathname;
+  var map={'deutsch_index':'nav-index','deutsch_learn':'nav-learn','deutsch_practice':'nav-practice','deutsch_reference':'nav-ref'};
+  for(var k in map){if(p.indexOf(k)>-1){var el=document.getElementById(map[k]);if(el){el.style.color='#4F8EF7';}break;}}
+})();
 </script>
 </body>
 </html>
